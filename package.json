@@ -1,0 +1,17 @@
+{
+  "name": "pie-charts",
+  "version": "1.0.0",
+  "description": "Create Pie Charts you can export",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "author": "Jérémy Payet",
+  "license": "ISC",
+  "dependencies": {
+    "apexcharts": "^3.46.0",
+    "electron": "^29.0.1",
+    "express": "^4.18.2"
+  }
+}
