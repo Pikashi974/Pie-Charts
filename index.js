@@ -15,7 +15,7 @@ const createWindow = () => {
     },
   });
   // win.loadFile("src/ui/login.html");
-  win.loadURL("http://localhost:3000/");
+  win.loadURL("http://localhost:4500/");
 };
 
 app.whenReady().then(() => {
