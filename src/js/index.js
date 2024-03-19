@@ -3,7 +3,11 @@ const partsHolder = document.querySelector("#partsHolder");
 const generatePie = document.querySelector("#generatePie");
 const downloadPie = document.querySelector("#downloadPie");
 const downloadPie2 = document.querySelector("#downloadPie2");
+
+const checkBoxBackground = document.querySelector("#checkBoxBackground");
+
 let nbParts = 0;
+let backgroundImage2;
 let chart;
 let images = [];
 let options;
@@ -14,6 +18,20 @@ function init() {
 init();
 
 parts.addEventListener("change", changeNbParts);
+checkBoxBackground.addEventListener("change", () => {
+  if (
+    document.querySelector(`label[for="checkBoxBackground"]`).innerHTML ==
+    "Link"
+  ) {
+    document.querySelector(`label[for="checkBoxBackground"]`).innerHTML =
+      "File";
+  } else {
+    document.querySelector(`label[for="checkBoxBackground"]`).innerHTML =
+      "Link";
+  }
+  document.querySelector(`#linkBackground`).classList.toggle("d-none");
+  document.querySelector(`#fileBackground`).classList.toggle("d-none");
+});
 generatePie.addEventListener("click", cookPie);
 downloadPie.addEventListener("click", downloadSVG);
 downloadPie2.addEventListener("click", downloadPNG);
@@ -27,11 +45,17 @@ function changeNbParts() {
   <legend class="mt-4">Part ${parseInt(index) + 1}</legend>
         <div class="form-group" id="label${index}">
     <label for="labelVal${index}">Label ${parseInt(index) + 1}</label>
-<input type="text" id="labelVal${index}" name="labelVal${index}" />
+    <input type="text" id="labelVal${index}" name="labelVal${index}" />
+  <input type="color" id="colorLabel${index}" value="#000000" />
+    <label class="form-check-label" for="colorLabel${index}">Text Color</label>
     </div>
   <div class="form-check form-switch">
     <input class="form-check-input" type="checkbox" value="" id="checkBox${index}" onchange="toggleInput(${index})">
     <label class="form-check-label" for="checkBox${index}">Link</label>
+  </div>
+  <div class="form-group">
+  <input type="color" id="color${index}" value="#e66465" />
+    <label class="form-check-label" for="color${index}">Color</label>
   </div>
   <div class="form-group" id="link${index}">
     <label for="formLink${index}" class="col-sm-2 col-form-label">Paste link here</label>
@@ -76,8 +100,12 @@ function toggleInput(index) {
 
 async function cookPie() {
   let seriesTab = [];
+  let widthCanvas = 500;
+  let heightCanvas = 350;
   images = [];
   let labelsVal = [];
+  let colorsVal = [];
+  let textColorsVal = [];
   for (let index = 0; index < nbParts; index++) {
     const element = parseInt(
       document.querySelector(`#quantityVal${index}`).value
@@ -100,7 +128,28 @@ async function cookPie() {
         ? document.querySelector(`#labelVal${index}`).value
         : `series${index}`
     );
+    colorsVal.push(
+      document.querySelector(`#color${index}`).value != ""
+        ? document.querySelector(`#color${index}`).value
+        : `color${index}`
+    );
+    textColorsVal.push(
+      document.querySelector(`#colorLabel${index}`).value != ""
+        ? document.querySelector(`#colorLabel${index}`).value
+        : `color${index}`
+    );
   }
+  let backgroundImage = "";
+  if (checkBoxBackground.checked) {
+    backgroundImage = await toBase64(
+      document.querySelector(`#formFileBackground`).files[0]
+    );
+  } else {
+    backgroundImage = await imageUrlToBase64(
+      document.querySelector(`#formLinkBackground`).value
+    );
+  }
+  backgroundImage2 = imageToDataUri(backgroundImage, widthCanvas);
   console.log(seriesTab);
   document.querySelector("#chart").innerHTML = "";
   options = {
@@ -108,28 +157,19 @@ async function cookPie() {
     labels: labelsVal,
     chart: {
       id: "LineGraph1",
-      width: 380,
+      width: widthCanvas,
       type: "pie",
-      // toolbar: {
-      //   show: true,
-      //   offsetX: 0,
-      //   offsetY: 0,
-      //   tools: {
-      //     download: true,
-      //     selection: true,
-      //     zoom: true,
-      //     zoomin: true,
-      //     zoomout: true,
-      //     pan: true,
-      //     reset: true | '<img src="/static/icons/reset.png" width="20">',
-      //     customIcons: [],
-      //   },
-      // },
+      background:
+        backgroundImage2 == "data:,"
+          ? "#fff"
+          : `url(
+        ${backgroundImage2}
+      ) `,
     },
-    // colors: ["#93C3EE", "#E5C6A0", "#669DB5", "#94A74A"],
+    colors: colorsVal,
     fill: {
       type: "image",
-      opacity: 0.85,
+      // opacity: 0.85,
       image: {
         src: images,
         width: 25,
@@ -163,6 +203,25 @@ async function cookPie() {
         },
       },
     ],
+    title: {
+      text: document.querySelector("#title").value,
+      align: "center",
+      margin: 10,
+      offsetX: 0,
+      offsetY: 0,
+      floating: false,
+      style: {
+        fontSize: "28px",
+        fontWeight: "bold",
+        fontFamily: undefined,
+        color: document.querySelector("#colortitle").value,
+      },
+    },
+    legend: {
+      labels: {
+        colors: textColorsVal,
+      },
+    },
   };
   if (chart != undefined) {
     chart.destroy();
@@ -172,6 +231,9 @@ async function cookPie() {
   document.querySelectorAll("image").forEach((image, index) => {
     image.href.baseVal = images[index];
   });
+  // document.querySelector(".apexcharts-canvas").style.background = url();
+  // document.querySelector(".apexcharts-canvas").style.background = url();
+  document.querySelector(".apexcharts-canvas").style.backgroundSize = "contain";
   downloadPie.removeAttribute("disabled");
   downloadPie2.removeAttribute("disabled");
 }
@@ -237,3 +299,24 @@ const imageUrlToBase64 = async (url) => {
     reader.onerror = reject;
   });
 };
+
+function imageToDataUri(link, width) {
+  // create an off-screen canvas
+  const img = new Image();
+  // img.width = width;
+  img.src = link;
+  document.querySelector("#output").appendChild(img);
+  var canvas = document.createElement("canvas"),
+    ctx = canvas.getContext("2d");
+  // set its dimension to target size
+  canvas.width = width;
+  canvas.height = parseInt((width * img.height) / img.width);
+  console.log(canvas.height);
+  // document.querySelector("#output").innerHTML = "";
+
+  // draw source image into the off-screen canvas:
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  // encode image to data-uri with base64 version of compressed image
+  return canvas.toDataURL();
+}
