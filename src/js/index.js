@@ -29,12 +29,20 @@ function changeNbParts() {
     <label for="labelVal${index}">Label ${parseInt(index) + 1}</label>
 <input type="text" id="labelVal${index}" name="labelVal${index}" />
     </div>
+  <div class="form-check form-switch">
+    <input class="form-check-input" type="checkbox" value="" id="checkBox${index}" onchange="toggleInput(${index})">
+    <label class="form-check-label" for="checkBox${index}">Link</label>
+  </div>
   <div class="form-group" id="link${index}">
     <label for="formLink${index}" class="col-sm-2 col-form-label">Paste link here</label>
     <div class="col-sm-10">
       <input type="text" class="form-control" id="formLink${index}" value="">
     </div>
   </div>
+  <div class="form-group d-none" id="file${index}">
+      <label for="formFile${index}" class="form-label mt-4">Choose your image</label>
+      <input class="form-control" type="file" id="formFile${index}">
+    </div>
     <div class="form-group" id="quantity${index}">
     <label for="quantityVal${index}">Quantity</label>
 
@@ -54,7 +62,19 @@ function changeNbParts() {
   nbParts = partsValue;
 }
 
-function cookPie() {
+function toggleInput(index) {
+  if (
+    document.querySelector(`label[for="checkBox${index}"]`).innerHTML == "Link"
+  ) {
+    document.querySelector(`label[for="checkBox${index}"]`).innerHTML = "File";
+  } else {
+    document.querySelector(`label[for="checkBox${index}"]`).innerHTML = "Link";
+  }
+  document.querySelector(`#link${index}`).classList.toggle("d-none");
+  document.querySelector(`#file${index}`).classList.toggle("d-none");
+}
+
+async function cookPie() {
   let seriesTab = [];
   images = [];
   let labelsVal = [];
@@ -63,15 +83,25 @@ function cookPie() {
       document.querySelector(`#quantityVal${index}`).value
     );
     seriesTab.push(element);
-    images.push(document.querySelector(`#formLink${index}`).value);
-
+    if (document.querySelector(`#checkBox${index}`).checked) {
+      let image = await toBase64(
+        document.querySelector(`#formFile${index}`).files[0]
+      );
+      images.push(image);
+    } else {
+      // images.push(document.querySelector(`#formLink${index}`).value);
+      let image = await imageUrlToBase64(
+        document.querySelector(`#formLink${index}`).value
+      );
+      images.push(image);
+    }
     labelsVal.push(
       document.querySelector(`#labelVal${index}`).value != ""
         ? document.querySelector(`#labelVal${index}`).value
         : `series${index}`
     );
   }
-  // console.log(seriesTab);
+  console.log(seriesTab);
   document.querySelector("#chart").innerHTML = "";
   options = {
     series: seriesTab,
@@ -139,6 +169,9 @@ function cookPie() {
   }
   chart = new ApexCharts(document.querySelector("#chart"), options);
   chart.render();
+  document.querySelectorAll("image").forEach((image, index) => {
+    image.href.baseVal = images[index];
+  });
   downloadPie.removeAttribute("disabled");
   downloadPie2.removeAttribute("disabled");
 }
@@ -166,15 +199,38 @@ async function downloadSVG() {
 }
 async function downloadPNG() {
   const ctx = chart.ctx;
+  ctx.exports.exportToPng(this.ctx);
 
-  // img.src = svgUrl;
-  // document.getElementById("output").appendChild(img);
-  // ctx.exports.svgURL(this.ctx);
-  const downloadLink = document.createElement("a");
-  downloadLink.href = ctx.exports.svgUrl(this.ctx);
-  downloadLink.download =
-    ("PieChart" ? "Piechart" : this.w.globals.chartID) + ".png";
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
+  // const ctx = chart.ctx;
+  // // img.src = svgUrl;
+  // // document.getElementById("output").appendChild(img);
+  // // ctx.exports.svgURL(this.ctx);
+  // const downloadLink = document.createElement("a");
+  // downloadLink.href = ctx.exports.svgUrl(this.ctx);
+  // downloadLink.download =
+  //   ("PieChart" ? "Piechart" : this.w.globals.chartID) + ".png";
+  // document.body.appendChild(downloadLink);
+  // downloadLink.click();
+  // document.body.removeChild(downloadLink);
 }
+const toBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+  });
+
+const imageUrlToBase64 = async (url) => {
+  const data = await fetch(url);
+  const blob = await data.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = () => {
+      const base64data = reader.result;
+      resolve(base64data);
+    };
+    reader.onerror = reject;
+  });
+};
