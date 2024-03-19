@@ -7,6 +7,7 @@ const downloadPie2 = document.querySelector("#downloadPie2");
 const checkBoxBackground = document.querySelector("#checkBoxBackground");
 
 let nbParts = 0;
+let backgroundImage;
 let backgroundImage2;
 let chart;
 let images = [];
@@ -139,7 +140,7 @@ async function cookPie() {
         : `color${index}`
     );
   }
-  let backgroundImage = "";
+  backgroundImage = "";
   if (checkBoxBackground.checked) {
     backgroundImage = await toBase64(
       document.querySelector(`#formFileBackground`).files[0]
@@ -149,7 +150,7 @@ async function cookPie() {
       document.querySelector(`#formLinkBackground`).value
     );
   }
-  backgroundImage2 = imageToDataUri(backgroundImage, widthCanvas);
+  backgroundImage2 = await imageToDataUri(backgroundImage, widthCanvas);
   console.log(seriesTab);
   document.querySelector("#chart").innerHTML = "";
   options = {
@@ -300,23 +301,29 @@ const imageUrlToBase64 = async (url) => {
   });
 };
 
-function imageToDataUri(link, width) {
+async function imageToDataUri(link, width) {
   // create an off-screen canvas
+  let div = document.createElement("div");
   const img = new Image();
   // img.width = width;
   img.src = link;
-  document.querySelector("#output").appendChild(img);
-  var canvas = document.createElement("canvas"),
-    ctx = canvas.getContext("2d");
-  // set its dimension to target size
-  canvas.width = width;
-  canvas.height = parseInt((width * img.height) / img.width);
-  console.log(canvas.height);
-  // document.querySelector("#output").innerHTML = "";
+  div.appendChild(img);
+  let stringObj = sleep(1000).then(() => {
+    var canvas = document.createElement("canvas"),
+      ctx = canvas.getContext("2d");
+    // set its dimension to target size
+    canvas.width = width;
+    canvas.height = parseInt((width * img.height) / img.width);
+    // document.querySelector("#output").innerHTML = "";
 
-  // draw source image into the off-screen canvas:
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    // draw source image into the off-screen canvas:
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-  // encode image to data-uri with base64 version of compressed image
-  return canvas.toDataURL();
+    // encode image to data-uri with base64 version of compressed image
+    return canvas.toDataURL();
+  });
+  return stringObj;
+}
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
