@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "apexcharts": "^3.46.0",
+    "cors": "^2.8.5",
+    "cors-anywhere": "^0.4.4",
     "electron": "^29.0.1",
     "express": "^4.18.2"
   }

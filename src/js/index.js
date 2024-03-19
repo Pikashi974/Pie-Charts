@@ -222,7 +222,10 @@ const toBase64 = (file) =>
   });
 
 const imageUrlToBase64 = async (url) => {
-  const data = await fetch(url);
+  const data = await fetch(
+    "https://young-crag-76713-2bf43ee3d874.herokuapp.com/" + url,
+    {}
+  );
   const blob = await data.blob();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
