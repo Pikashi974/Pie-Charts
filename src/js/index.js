@@ -2,6 +2,7 @@ const parts = document.querySelector("#parts");
 const partsHolder = document.querySelector("#partsHolder");
 const generatePie = document.querySelector("#generatePie");
 const downloadPie = document.querySelector("#downloadPie");
+const downloadPie2 = document.querySelector("#downloadPie2");
 let nbParts = 0;
 let chart;
 let images = [];
@@ -15,6 +16,7 @@ init();
 parts.addEventListener("change", changeNbParts);
 generatePie.addEventListener("click", cookPie);
 downloadPie.addEventListener("click", downloadSVG);
+downloadPie2.addEventListener("click", downloadPNG);
 
 function changeNbParts() {
   let partsValue = parseInt(parts.value);
@@ -138,6 +140,7 @@ function cookPie() {
   chart = new ApexCharts(document.querySelector("#chart"), options);
   chart.render();
   downloadPie.removeAttribute("disabled");
+  downloadPie2.removeAttribute("disabled");
 }
 
 function previewFile(file, position) {
@@ -160,4 +163,18 @@ function previewFile(file, position) {
 async function downloadSVG() {
   const ctx = chart.ctx;
   ctx.exports.exportToSVG(this.ctx);
+}
+async function downloadPNG() {
+  const ctx = chart.ctx;
+
+  // img.src = svgUrl;
+  // document.getElementById("output").appendChild(img);
+  // ctx.exports.svgURL(this.ctx);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = ctx.exports.svgUrl(this.ctx);
+  downloadLink.download =
+    ("PieChart" ? "Piechart" : this.w.globals.chartID) + ".png";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
 }
