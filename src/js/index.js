@@ -152,7 +152,8 @@ async function cookPie() {
   }
   backgroundImage2 = await imageToDataUri(backgroundImage, widthCanvas);
   console.log(seriesTab);
-  document.querySelector("#chart").innerHTML = "";
+  document.querySelector("#chartOutput").innerHTML = '<div id="chart"></div>';
+  document.querySelector("#chartOutput").classList.remove("d-none");
   options = {
     series: seriesTab,
     labels: labelsVal,
@@ -191,19 +192,19 @@ async function cookPie() {
         borderWidth: 0,
       },
     },
-    responsive: [
-      {
-        breakpoint: 480,
-        options: {
-          chart: {
-            width: 200,
-          },
-          legend: {
-            position: "bottom",
-          },
-        },
-      },
-    ],
+    // responsive: [
+    //   {
+    //     breakpoint: 480,
+    //     options: {
+    //       chart: {
+    //         width: 200,
+    //       },
+    //       legend: {
+    //         position: "bottom",
+    //       },
+    //     },
+    //   },
+    // ],
     title: {
       text: document.querySelector("#title").value,
       align: "center",
@@ -224,7 +225,7 @@ async function cookPie() {
       },
     },
   };
-  if (chart != undefined) {
+  if (chart) {
     chart.destroy();
   }
   chart = new ApexCharts(document.querySelector("#chart"), options);
