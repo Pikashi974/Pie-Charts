@@ -1,6 +1,5 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("node:path");
-const express = require("express");
 const expressApp = require("./express"); //your express app
 
 const createWindow = () => {
@@ -19,7 +18,6 @@ const createWindow = () => {
 };
 
 app.whenReady().then(() => {
-  express();
   createWindow();
   app.on("activate", () => {
     // Sur macOS il est commun de re-créer une fenêtre  lors
